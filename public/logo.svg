@@ -1,0 +1,9 @@
+<!-- Monogram NJ Nusantara Jaya — versi warna untuk latar terang.
+     Markup yang dipakai di halaman ada di resources/views/components/logo.blade.php;
+     berkas ini untuk keperluan logo sebagai gambar (lampiran, cetak, unduhan). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 64 64" fill="none">
+    <path fill="#c8953c" d="M45 8h14v30q0 18-16 18-10 0-15.5-8.5L38 41c2 3 7 4 7-3z"/>
+    <path fill="#1f345f" d="M4 8h22l14 48H29L15 10v46H4z"/>
+    <path d="M9 57Q26 31 61 20Q35 33 17 57Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M9 57Q26 31 61 20Q35 33 17 57Z" fill="#1f345f"/>
+</svg>

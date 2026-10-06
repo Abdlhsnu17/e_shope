@@ -1,121 +1,122 @@
-# Portal Sekolah
+# Abdishope
 
-Portal Sekolah adalah aplikasi web berbasis Laravel untuk mengelola profil sekolah, berita, galeri, data siswa, data guru, dan penerimaan siswa baru (PSB). Aplikasi ini menyediakan halaman publik untuk pengunjung serta panel admin untuk staf sekolah.
+Abdishope adalah aplikasi e-commerce berbasis Laravel untuk menjual produk, menerima pesanan, dan mengelola operasional toko dari dashboard admin. Antarmuka publik memakai identitas logo Abdishope, katalog produk, keranjang, checkout, serta metode pembayaran demo.
 
-## Fitur Utama
+## Fitur
 
-- Halaman publik: beranda, profil sekolah, berita, detail berita, dan galeri.
-- Penerimaan siswa baru: formulir pendaftaran, cek status, unggah dokumen, dan penghapusan dokumen.
-- Panel admin: dashboard operasional, manajemen pendaftaran, siswa, guru, berita, galeri, profil sekolah, dan pengguna.
-- Role pengguna: `admin`, `staf`, dan `guru`.
-- Dashboard profesional dengan ringkasan statistik, status verifikasi PSB, pendaftar terbaru, dan konten terbaru.
-- Seed data demo untuk profil sekolah, akun, siswa, guru, konten, galeri, dan pendaftar.
+- Storefront responsif: beranda, katalog, kategori, dan detail produk.
+- Akun pelanggan: daftar, masuk, keluar, dan checkout berbasis sesi.
+- Keranjang belanja dan validasi stok.
+- Checkout dan pencatatan pesanan dengan metode transfer bank, e-wallet, atau COD.
+- Panel admin: dashboard toko, CRUD produk, CRUD berita & pemberitahuan, dan manajemen pengguna.
+- Data tersimpan di MySQL melalui migration Laravel.
 
 ## Teknologi
 
-- PHP `^8.3`
-- Laravel `^13.8`
-- MySQL atau database lain yang didukung Laravel
-- Vite `^8`
-- Tailwind CSS `^4`
-- Alpine.js
+- PHP 8.3+
+- Laravel 13
+- MySQL / MariaDB
+- Blade, Tailwind CSS 4, Alpine.js, dan Vite
 
 ## Instalasi Lokal
 
-1. Install dependency PHP:
+1. Pasang dependensi.
 
 ```bash
 composer install
-```
-
-2. Install dependency frontend:
-
-```bash
 npm install
 ```
 
-3. Buat file environment dan app key:
+2. Buat konfigurasi environment.
 
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-4. Atur koneksi database di `.env`, lalu jalankan migrasi dan seeder:
+3. Buat database `abdishope` melalui phpMyAdmin atau MySQL, lalu isi `.env`.
 
-```bash
-php artisan migrate --seed
+```env
+APP_NAME="Abdishope"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=abdishope
+DB_USERNAME=root
+DB_PASSWORD=
+
+CACHE_STORE=file
+SESSION_DRIVER=file
+QUEUE_CONNECTION=sync
 ```
 
-5. Buat symlink storage untuk file upload:
+4. Buat tabel dan data demo toko.
 
 ```bash
-php artisan storage:link
+php artisan migrate
+php artisan db:seed --class=StoreSeeder
 ```
 
-6. Build asset frontend:
+5. Build aset dan mulai aplikasi.
 
 ```bash
 npm run build
-```
-
-7. Jalankan server:
-
-```bash
 php artisan serve
 ```
 
-Akses aplikasi di `http://127.0.0.1:8000`.
+Buka `http://127.0.0.1:8000`.
 
-## Mode Development
-
-Untuk menjalankan server Laravel dan Vite secara terpisah:
-
-```bash
-php artisan serve
-npm run dev
-```
-
-Atau gunakan script gabungan dari Composer:
-
-```bash
-composer run dev
-```
+Untuk mode pengembangan aset, jalankan `npm run dev` pada terminal kedua.
 
 ## Akun Demo
 
-Seeder membuat akun berikut:
-
-| Role | Email | Password |
+| Jenis | Email | Password |
 | --- | --- | --- |
-| Admin | `admin@sekolah.test` | `password` |
-| Staf | `staf@sekolah.test` | `password` |
+| Admin | `admin@abdishope.test` | `password` |
 
-Panel admin tersedia di:
+Pelanggan dapat membuat akun baru dari `/register`.
 
-```text
-/admin
-```
+## Rute Utama
 
-## Struktur Modul
-
-| Modul | Route Utama | Deskripsi |
+| Area | Rute | Keterangan |
 | --- | --- | --- |
-| Publik | `/`, `/profil`, `/berita`, `/galeri` | Informasi sekolah untuk pengunjung |
-| Pendaftaran | `/pendaftaran` | Form PSB dan unggah dokumen |
-| Cek Status | `/pendaftaran/cek-status` | Pengecekan status pendaftaran |
-| Dashboard Admin | `/admin` | Statistik dan aktivitas terbaru |
-| Pendaftaran Admin | `/admin/pendaftaran` | Verifikasi, catatan, penerimaan, dan penghapusan pendaftar |
-| Siswa | `/admin/students` | CRUD data siswa |
-| Guru | `/admin/teachers` | CRUD data guru |
-| Berita | `/admin/announcements` | CRUD berita, agenda, dan pengumuman |
-| Galeri | `/admin/galeri` | Upload dan kelola foto galeri |
-| Profil Sekolah | `/admin/profil-sekolah` | Edit informasi sekolah |
-| Pengguna | `/admin/users` | Manajemen pengguna khusus admin |
+| Beranda | `/` | Storefront Abdishope |
+| Katalog | `/shop` | Daftar dan filter produk |
+| Detail produk | `/products/{slug}` | Detail dan tambah ke keranjang |
+| Keranjang | `/cart` | Isi keranjang berbasis sesi |
+| Checkout | `/checkout` | Membuat pesanan; wajib login |
+| Login | `/login` | Login pelanggan dan admin |
+| Register | `/register` | Pendaftaran pelanggan |
+| Admin | `/admin` | Dashboard toko; wajib akun admin |
+| Produk admin | `/admin/products` | CRUD produk |
+| Berita & pemberitahuan | `/admin/announcements` | CRUD konten dan gambar sampul |
+| Pengguna | `/admin/users` | Manajemen akun oleh admin |
 
-## Catatan Asset Vite
+## Pembayaran
 
-Jika muncul error:
+Checkout saat ini menyimpan pilihan metode pembayaran ke tabel `orders`:
+
+- Transfer bank
+- E-wallet (GoPay / OVO / DANA)
+- Cash on Delivery (COD)
+
+Ini adalah alur demo; belum terhubung ke payment gateway seperti Midtrans, Xendit, atau QRIS.
+
+## Tabel E-commerce
+
+- `users` — admin dan pelanggan.
+- `products` — katalog, stok, harga, gambar, dan status tampil.
+- `orders` — informasi pembeli, alamat, metode/status pembayaran, dan total.
+- `order_items` — produk dan jumlah pada setiap pesanan.
+- `announcements` — berita dan pemberitahuan toko.
+
+## Catatan Vite
+
+Jika muncul error berikut:
 
 ```text
 Vite manifest not found at: public/build/manifest.json
@@ -124,19 +125,14 @@ Vite manifest not found at: public/build/manifest.json
 jalankan:
 
 ```bash
+npm install
 npm run build
 ```
 
-Vite versi saat ini meminta Node.js `20.19+` atau `22.12+`. Jika build memberi warning versi Node, upgrade Node ke versi yang sesuai.
-
 ## Testing
-
-Jalankan test Laravel:
 
 ```bash
 php artisan test
 ```
 
-## Dokumen Produk
-
-Dokumen Product Requirements Document tersedia di [docs/PRD.md](docs/PRD.md).
+Lihat detail kebutuhan produk di [docs/PRD.md](docs/PRD.md).

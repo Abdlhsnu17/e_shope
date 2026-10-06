@@ -1,0 +1,11 @@
+<!-- Favicon: monogram terbalik di atas kartu biru tua agar tetap terbaca
+     pada tab 16px, baik di tema terang maupun gelap. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+    <rect width="64" height="64" rx="14" fill="#1b2c4e"/>
+    <g transform="translate(5.4 5.4) scale(0.82)">
+        <path fill="#e0a94a" d="M45 8h14v30q0 18-16 18-10 0-15.5-8.5L38 41c2 3 7 4 7-3z"/>
+        <path fill="#ffffff" d="M4 8h22l14 48H29L15 10v46H4z"/>
+        <path d="M9 57Q26 31 61 20Q35 33 17 57Z" fill="none" stroke="#1b2c4e" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M9 57Q26 31 61 20Q35 33 17 57Z" fill="#ffffff"/>
+    </g>
+</svg>

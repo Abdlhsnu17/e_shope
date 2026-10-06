@@ -1,0 +1,289 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    /*
+     * Tipografi. Inter untuk antarmuka & tabel (angka rata, huruf kecil terbaca
+     * pada 12px), Plus Jakarta Sans untuk judul — bentuknya lebih tegas dan
+     * memberi kontras hierarki tanpa perlu ukuran ekstrem. Keduanya punya
+     * cadangan font sistem, jadi tampilan tetap wajar bila berkas font gagal
+     * dimuat.
+     */
+    --font-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Playfair Display', Georgia, serif;
+
+    /* Warna merek — biru tua logo Nusantara Jaya (brand-800 = warna monogram) */
+    --color-brand-50: #f2f6fc;
+    --color-brand-100: #e1eaf7;
+    --color-brand-200: #c4d5ee;
+    --color-brand-300: #9cb6df;
+    --color-brand-400: #6c8ecb;
+    --color-brand-500: #4569b4;
+    --color-brand-600: #2f4f95;
+    --color-brand-700: #264178;
+    --color-brand-800: #1f345f;
+    --color-brand-900: #1b2c4e;
+    --color-brand-950: #111d34;
+
+    /* Aksen emas logo — sorotan & ajakan bertindak (accent-500 = warna monogram) */
+    --color-accent-50: #fdf8ee;
+    --color-accent-100: #f8ecd2;
+    --color-accent-200: #f0d69f;
+    --color-accent-300: #e5bd6d;
+    --color-accent-400: #d9a94e;
+    --color-accent-500: #c8953c;
+    --color-accent-600: #a5762c;
+    --color-accent-700: #7f5a22;
+
+    /* Peran status — dipakai apa adanya, selalu berdampingan dengan label teks */
+    --color-state-good: #0ca30c;
+    --color-state-warning: #fab219;
+    --color-state-serious: #ec835a;
+    --color-state-critical: #d03b3b;
+
+    --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+    --shadow-lift: 0 14px 35px -22px rgb(15 23 42 / 0.28), 0 4px 10px -6px rgb(15 23 42 / 0.14);
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+@layer base {
+    html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-size-adjust: 100%;
+    }
+
+    body {
+        /* cv11: bentuk 'a'/'g' satu lantai — lebih jernih pada teks kecil */
+        font-feature-settings: 'cv11';
+        font-optical-sizing: auto;
+    }
+
+    /*
+     * Judul memakai font display dengan spasi huruf yang mengetat seiring
+     * besarnya ukuran — teks besar terlihat renggang bila dibiarkan normal.
+     */
+    h1, h2, h3, h4 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.019em;
+        text-wrap: balance;
+    }
+
+    h1 {
+        letter-spacing: -0.028em;
+    }
+
+    h2 {
+        letter-spacing: -0.024em;
+    }
+
+    /* Paragraf tidak menyisakan satu kata di baris terakhir */
+    p {
+        text-wrap: pretty;
+    }
+
+    ::selection {
+        background: var(--color-brand-100);
+        color: var(--color-brand-950);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand-500);
+        outline-offset: 2px;
+    }
+}
+
+@layer components {
+    /* Label kecil huruf kapital — penanda bagian yang konsisten di seluruh situs */
+    .eyebrow {
+        font-family: var(--font-display);
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    /* Angka besar memakai figur proporsional; kolom angka memakai tabular */
+    .tabular {
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0;
+    }
+
+    /* Angka statistik: rapat, tegas, dan sejajar antar kartu */
+    .metric {
+        font-family: var(--font-display);
+        font-variant-numeric: tabular-nums;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+
+    /*
+     * Sidebar admin yang dapat diciutkan.
+     * Status disimpan sebagai atribut pada <html> agar tidak berkedip saat halaman
+     * dimuat ulang, dan hanya berlaku mulai lebar layar lg — di bawah itu sidebar
+     * tetap berupa laci penuh sehingga labelnya wajib terbaca.
+     */
+    .admin-sidebar {
+        width: 16rem;
+    }
+
+    .admin-shell {
+        background:
+            linear-gradient(180deg, rgb(248 250 252) 0%, rgb(241 245 249) 100%);
+    }
+
+    .admin-shell::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+            linear-gradient(rgb(15 23 42 / 0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgb(15 23 42 / 0.035) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: linear-gradient(to bottom, black, transparent 55%);
+    }
+
+    .admin-surface,
+    .admin-shell .rounded-2xl.border.border-slate-200.bg-white {
+        border-color: rgb(203 213 225 / 0.78);
+        border-radius: 0.5rem;
+        background: rgb(255 255 255 / 0.96);
+        box-shadow: var(--shadow-card);
+    }
+
+    .admin-shell table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .admin-shell thead {
+        background: rgb(248 250 252);
+        color: rgb(71 85 105);
+    }
+
+    .admin-shell th {
+        border-bottom: 1px solid rgb(226 232 240);
+        font-size: 0.6875rem;
+        letter-spacing: 0.08em;
+    }
+
+    .admin-shell tbody tr {
+        transition: background-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .admin-shell tbody tr:hover {
+        background: rgb(248 250 252);
+    }
+
+    .admin-shell input[type='search'],
+    .admin-shell input[type='text'],
+    .admin-shell input[type='email'],
+    .admin-shell input[type='password'],
+    .admin-shell input[type='date'],
+    .admin-shell input[type='file'],
+    .admin-shell select,
+    .admin-shell textarea {
+        border-color: rgb(203 213 225);
+        background-color: rgb(255 255 255);
+        box-shadow: 0 1px 1px rgb(15 23 42 / 0.03);
+    }
+
+    .admin-shell input:focus,
+    .admin-shell select:focus,
+    .admin-shell textarea:focus {
+        border-color: var(--color-brand-500);
+        box-shadow: 0 0 0 3px rgb(69 105 180 / 0.14);
+    }
+
+    .admin-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        border-radius: 0.5rem;
+        border: 1px solid rgb(203 213 225 / 0.82);
+        background: rgb(255 255 255 / 0.82);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: rgb(71 85 105);
+        transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .admin-chip:hover {
+        border-color: rgb(148 163 184);
+        background: rgb(248 250 252);
+        color: var(--color-brand-900);
+    }
+
+    .admin-chip-active {
+        border-color: var(--color-brand-700);
+        background: var(--color-brand-700);
+        color: white;
+    }
+
+    .admin-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.5rem;
+        background: var(--color-brand-700);
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: white;
+        box-shadow: 0 8px 18px -14px rgb(17 29 52 / 0.6);
+        transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .admin-primary:hover {
+        background: var(--color-brand-800);
+        box-shadow: var(--shadow-lift);
+        transform: translateY(-1px);
+    }
+
+    .admin-shell a.bg-brand-700,
+    .admin-shell button.bg-brand-700,
+    .admin-shell button.bg-brand-950 {
+        border-radius: 0.5rem;
+        font-weight: 700;
+        box-shadow: 0 8px 18px -14px rgb(17 29 52 / 0.6);
+    }
+
+    .admin-shell a.bg-slate-100,
+    .admin-shell span.bg-slate-100,
+    .admin-shell span.bg-brand-50 {
+        border: 1px solid rgb(203 213 225 / 0.7);
+    }
+
+    .admin-shell .sticky.right-0.bg-white {
+        box-shadow: -10px 0 18px -18px rgb(15 23 42 / 0.28);
+    }
+
+    @media (min-width: 1024px) {
+        .admin-sidebar {
+            transition: width 200ms ease;
+        }
+
+        html[data-sidebar='collapsed'] .admin-sidebar {
+            width: 4.5rem;
+        }
+
+        html[data-sidebar='collapsed'] .sidebar-label {
+            display: none;
+        }
+
+        html[data-sidebar='collapsed'] .sidebar-link {
+            justify-content: center;
+            padding-inline: 0;
+        }
+    }
+}
