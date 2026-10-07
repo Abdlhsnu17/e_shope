@@ -1,21 +1,26 @@
-# Portal Sekolah / Abdishope
+# Abdishope
 
-Aplikasi web Laravel yang saat ini menggabungkan alur Penerimaan Siswa Baru (PSB) dan administrasi sekolah dengan storefront Abdishope untuk katalog serta pemesanan produk. Nama dan navigasi kedua area belum sepenuhnya diseragamkan; rincian fitur dan batasannya ada di [docs/PRD.md](docs/PRD.md).
+Storefront e-commerce Abdishope untuk katalog produk kebutuhan rumah, busana, dan ritual harian. Aplikasi menyediakan katalog, keranjang berbasis session, checkout pelanggan, pencatatan pesanan, serta panel admin untuk mengelola produk dan pengguna.
+
+Product Requirements Document: [docs/PRD.md](docs/PRD.md).
 
 ## Fitur
 
-- Formulir PSB publik, nomor pendaftaran, cek status, dan pengelolaan dokumen pendaftar.
-- Panel administrasi untuk pendaftaran, siswa, guru, berita/pemberitahuan, galeri, profil sekolah, akun, dan produk.
-- Storefront: beranda, katalog, detail produk, keranjang, checkout, dan konfirmasi pesanan.
-- Role pengguna: `admin`, `staf`, `guru`, dan `customer`.
-- Perlindungan akses dokumen pendaftar, akun aktif, validasi server-side, serta pembatasan laju pada endpoint publik sensitif.
+- Beranda, katalog kategori `home`, `wear`, dan `ritual`, serta detail produk.
+- Keranjang belanja untuk pengunjung.
+- Registrasi dan login pelanggan.
+- Checkout dengan metode transfer bank, e-wallet, atau COD.
+- Pencatatan pesanan dan item pesanan serta pengurangan stok.
+- Dashboard toko dan CRUD produk/pengguna untuk admin.
+
+> **Catatan codebase:** sejumlah route, view, model, dan migration untuk portal sekolah/PSB masih ada dari aplikasi sebelumnya. Area tersebut adalah legacy dan bukan bagian dari ruang lingkup produk Abdishope. Tinjau [PRD](docs/PRD.md) sebelum mengembangkan atau men-deploy fitur terkait.
 
 ## Persyaratan
 
-- PHP 8.3 atau lebih baru.
-- Composer.
-- Node.js dan npm.
-- MySQL/MariaDB (konfigurasi bawaan) atau database lain yang didukung Laravel dan dikonfigurasi di `.env`.
+- PHP 8.3 atau lebih baru
+- Composer
+- Node.js dan npm
+- MySQL/MariaDB (database bawaan pada `.env.example`) atau database lain yang didukung Laravel
 
 ## Menjalankan Secara Lokal
 
@@ -25,14 +30,14 @@ Aplikasi web Laravel yang saat ini menggabungkan alur Penerimaan Siswa Baru (PSB
    composer install
    ```
 
-2. Buat file `.env` dari contoh dan buat application key:
+2. Buat konfigurasi lokal dan application key:
 
    ```bash
    cp .env.example .env
    php artisan key:generate
    ```
 
-3. Buat database lokal, lalu sesuaikan `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` pada `.env`. Nilai bawaan nama database adalah `portal_sekolah`.
+3. Buat database lokal dan sesuaikan `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, serta `DB_PASSWORD` di `.env`. Nama database bawaan pada contoh adalah `portal_sekolah`; ganti sesuai database development Abdishope yang Anda siapkan.
 
 4. Jalankan migration dan data contoh:
 
@@ -40,7 +45,7 @@ Aplikasi web Laravel yang saat ini menggabungkan alur Penerimaan Siswa Baru (PSB
    php artisan migrate --seed
    ```
 
-5. Buat symbolic link untuk file publik yang dikelola Laravel Storage:
+5. Buat symbolic link untuk file yang dikelola Laravel Storage:
 
    ```bash
    php artisan storage:link
@@ -59,50 +64,44 @@ Aplikasi web Laravel yang saat ini menggabungkan alur Penerimaan Siswa Baru (PSB
    php artisan serve
    ```
 
-   Buka URL yang ditampilkan oleh Artisan, biasanya `http://127.0.0.1:8000`.
+   Buka URL yang ditampilkan, biasanya `http://127.0.0.1:8000`.
 
-Untuk pengembangan frontend dengan hot reload, jalankan `npm run dev` di terminal terpisah. Script `composer run dev` juga tersedia untuk menjalankan server Laravel, Vite, queue listener, dan log viewer bersamaan.
+Untuk hot reload frontend, jalankan `npm run dev` di terminal terpisah. Script `composer run dev` juga tersedia untuk menjalankan server Laravel, Vite, queue listener, dan log viewer secara bersamaan.
 
-## Akun Demo
+## Akun Demo Lokal
 
-Seeder lokal membuat akun berikut dengan kata sandi `password`:
+Seeder utama membuat akun demo berikut dengan kata sandi `password`:
 
 | Role | Email |
 | --- | --- |
-| Admin | `admin@sekolah.test` |
-| Staf | `staf@sekolah.test` |
+| Admin toko | `admin@sekolah.test` |
+| Staf (akun legacy) | `staf@sekolah.test` |
 
-Kredensial tersebut hanya untuk pengembangan lokal. Jangan gunakan akun atau kata sandi demo di lingkungan yang dapat diakses publik. Ubah atau hapus akun demo sebelum deployment.
+Akun admin menggunakan alamat email demo lama yang belum diganti. Kredensial ini hanya untuk pengembangan lokal: jangan gunakan di server publik dan ganti atau hapus sebelum deployment.
 
-## Rute Utama
+## Rute Abdishope
 
-| URL | Fungsi |
+| URL | Kegunaan |
 | --- | --- |
-| `/` | Beranda storefront Abdishope |
+| `/` | Beranda storefront |
 | `/shop` | Katalog produk |
-| `/cart` | Keranjang belanja |
-| `/login` dan `/register` | Masuk dan registrasi akun |
-| `/pendaftaran` | Formulir Penerimaan Siswa Baru |
-| `/pendaftaran/cek-status` | Cek status dengan nomor pendaftaran dan email |
-| `/admin` | Dashboard administrasi |
+| `/products/{slug}` | Detail produk |
+| `/cart` | Keranjang |
+| `/checkout` | Checkout (perlu login) |
+| `/orders/{order}` | Ringkasan pesanan (pemilik atau admin) |
+| `/login` dan `/register` | Autentikasi |
+| `/admin` | Dashboard admin |
+| `/admin/products` | Pengelolaan produk |
+| `/admin/users` | Pengelolaan pengguna |
 
-Checkout memerlukan login. Berkas PSB hanya dapat dikelola setelah pendaftar membuktikan kepemilikan melalui session dari pengiriman formulir atau verifikasi nomor pendaftaran dan email.
-
-## Pengujian dan Build
-
-Jalankan test suite:
+## Test dan Build
 
 ```bash
 php artisan test
-```
-
-Build aset frontend:
-
-```bash
 npm run build
 ```
 
-Test memakai SQLite in-memory sesuai konfigurasi `phpunit.xml`; pengujian tidak memerlukan database MySQL lokal.
+Test suite dikonfigurasi menggunakan SQLite in-memory pada `phpunit.xml`, sehingga pengujian tidak memerlukan database MySQL lokal.
 
 ## Teknologi
 
@@ -116,19 +115,18 @@ Test memakai SQLite in-memory sesuai konfigurasi `phpunit.xml`; pengujian tidak 
 ## Struktur Direktori
 
 ```text
-app/                    Model, middleware, dan controller
+app/                    Model, controller, dan middleware
 database/migrations/    Skema database
 database/seeders/       Data contoh dan akun demo
-docs/PRD.md             Product Requirements Document
+docs/PRD.md             Product Requirements Document Abdishope
 resources/views/        Template Blade
 routes/web.php          Rute aplikasi
 tests/                  Unit dan feature tests
 ```
 
-## Catatan Pengembangan
+## Catatan Operasional
 
-- Konfigurasi contoh memakai MySQL, session/cache/queue berbasis database, dan `APP_LOCALE=id`.
-- Seed data sekolah, akun demo, galeri, konten, pendaftar, dan produk merupakan data contoh.
-- Dokumen pendaftaran disimpan pada disk privat (`local`), tidak pada disk publik.
-- Metode pembayaran toko masih berupa pencatatan pilihan; integrasi gateway dan verifikasi pembayaran belum tersedia.
-- Beberapa modul sekolah tersedia melalui route administrasi tetapi belum seluruhnya ditautkan dari sidebar. Periksa hak akses dan konfigurasi environment sebelum deployment.
+- Ongkos kirim checkout saat ini tetap Rp20.000.
+- Metode pembayaran dicatat pada pesanan, tetapi belum terhubung ke payment gateway.
+- Foto produk memakai URL eksternal; unggah dan pengelolaan gambar produk belum tersedia.
+- Jangan menganggap rute dan fitur sekolah yang masih ada di repository sebagai bagian dari Abdishope.
