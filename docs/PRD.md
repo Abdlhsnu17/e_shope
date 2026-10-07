@@ -1,131 +1,170 @@
-# Product Requirements Document: Abdishope
+# Product Requirements Document — Portal Sekolah
 
-## 1. Ringkasan
+## 1. Ringkasan Produk
 
-Abdishope adalah aplikasi e-commerce untuk katalog produk, transaksi pesanan, serta pengelolaan toko melalui panel admin. Produk menyediakan pengalaman belanja yang responsif bagi pelanggan dan workspace operasional untuk administrator.
+Codebase ini berisi aplikasi web Laravel dengan dua kelompok kemampuan yang saat ini berjalan berdampingan:
 
-## 2. Tujuan Produk
+1. **Portal sekolah**, terutama alur Penerimaan Siswa Baru (PSB), pengelolaan pendaftar dan dokumen, data siswa dan guru, konten, galeri, serta profil sekolah.
+2. **Storefront Abdishope**, dengan katalog produk, keranjang, checkout, dan pencatatan pesanan.
 
-- Menyediakan storefront yang cepat dan mudah dipakai untuk menjelajahi serta membeli produk.
-- Membuat proses tambah keranjang dan checkout sederhana serta tercatat di database.
-- Memungkinkan admin mengelola katalog, stok, pengguna, berita, dan pemberitahuan tanpa mengubah kode.
-- Menjadi fondasi integrasi pembayaran online dan pengiriman pada tahap berikutnya.
+Nama aplikasi pada konfigurasi awal adalah `Portal Sekolah`, sedangkan storefront dan sebagian besar panel admin menggunakan branding `Abdishope`. Karena itu dokumen ini menjelaskan perilaku codebase sebagaimana adanya dan tidak menganggap kedua area tersebut sudah terintegrasi sebagai satu pengalaman produk yang konsisten.
 
-## 3. Pengguna
+## 2. Tujuan
 
-| Pengguna | Kebutuhan utama |
+- Memudahkan calon siswa mengirim pendaftaran, mengunggah persyaratan, dan memantau status seleksi.
+- Membantu petugas mengelola pendaftar, dokumen, serta memindahkan pendaftar yang diterima ke data siswa.
+- Menyediakan pengelolaan data siswa, guru, pengguna, berita/pemberitahuan, galeri, dan profil sekolah melalui rute administrasi.
+- Menyediakan alur katalog dan pemesanan produk Abdishope untuk pengunjung dan pelanggan.
+- Melindungi data sensitif pendaftar melalui validasi, pembatasan permintaan, dan akses dokumen terverifikasi.
+
+## 3. Pengguna dan Peran
+
+| Pengguna | Kebutuhan dan akses yang tersedia |
 | --- | --- |
-| Pengunjung | Melihat beranda, katalog, kategori, dan detail produk. |
-| Pelanggan | Mendaftar, login, menyimpan pesanan, checkout, dan melihat konfirmasi pesanan. |
-| Admin | Mengelola produk, stok, pengguna, berita/pemberitahuan, serta memantau pesanan dan pendapatan. |
+| Pengunjung | Membuka storefront, melihat katalog dan detail produk, memakai keranjang, serta mengisi formulir PSB dan cek status. |
+| Pelanggan (`customer`) | Membuat akun, login, checkout, dan membuka halaman pesanan miliknya. |
+| Staf (`staf`) | Login ke panel/rute administrasi yang dilindungi autentikasi; dapat memproses pendaftaran dan mengelola beberapa data sekolah. |
+| Guru (`guru`) | Akun tersedia dalam model pengguna dan dapat login; akses administrasi umum mengikuti middleware autentikasi yang dipakai rute. |
+| Admin (`admin`) | Mengakses rute administrasi umum serta, secara khusus, manajemen produk dan pengguna. |
+| Panitia PSB | Menggunakan rute administrasi pendaftaran untuk meninjau berkas, memperbarui status, dan menerima pendaftar sebagai siswa. |
 
-## 4. Ruang Lingkup Fitur
+Catatan akses: middleware `admin` diterapkan pada rute manajemen produk dan pengguna. Rute panel lainnya mensyaratkan login dan akun aktif, tetapi belum membatasi berdasarkan role tertentu. Perilaku ini penting dipahami sebelum aplikasi dibuka untuk penggunaan produksi.
 
-### 4.1 Storefront
+## 4. Ruang Lingkup Fungsional Saat Ini
 
-- Beranda dengan hero, koleksi unggulan, kategori, dan konten editorial.
-- Katalog seluruh produk dengan filter kategori `home`, `wear`, dan `ritual`.
-- Halaman detail produk berisi gambar, harga, deskripsi, stok, dan form tambah keranjang.
-- Branding Abdishope pada header, footer, halaman autentikasi, dan dashboard admin.
-- Tampilan responsif untuk mobile dan desktop.
+### 4.1 Penerimaan Siswa Baru
 
-### 4.2 Akun dan Autentikasi
+- Formulir publik menangkap identitas calon siswa, NISN opsional, jenis kelamin, tanggal lahir, asal sekolah, jurusan pilihan, kontak, alamat, dan data wali.
+- Pendaftaran diberi nomor berurutan dengan format `PSB-{tahun}-{nomor empat digit}` dan status awal `menunggu`.
+- Pengiriman formulir dibatasi hingga 5 permintaan per jam per alamat IP.
+- Pendaftar dapat membuka pengelolaan dokumen setelah mengirim formulir atau berhasil mencocokkan nomor pendaftaran dan email pada halaman cek status.
+- Dokumen yang didukung: PDF, JPG/JPEG, dan PNG; ukuran maksimum 2 MB per berkas; maksimum 12 dokumen per pendaftar.
+- Dokumen disimpan pada disk `local` privat dan hanya diunduh melalui rute yang memeriksa kepemilikan atau autentikasi petugas.
+- Pendaftar dapat melihat progres/status dan catatan panitia setelah verifikasi nomor pendaftaran dan email.
+- Status pendaftaran yang tersedia: `menunggu`, `diverifikasi`, `diterima`, dan `ditolak`.
+- Petugas dapat mencari dan memfilter pendaftar, melihat/mengunduh dokumen, memperbarui status/catatan, menghapus pendaftaran, serta mengubah pendaftar berstatus `diterima` menjadi siswa aktif.
+- Penomoran NIS baru dilakukan ketika pendaftar diterima menjadi siswa.
 
-- Registrasi pelanggan dengan nama, email, nomor WhatsApp, dan kata sandi.
-- Login, logout, dan opsi ingat saya.
-- Redirect pelanggan ke storefront dan admin ke dashboard admin setelah login.
-- Akun tidak aktif tidak dapat login.
+### 4.2 Administrasi Sekolah
 
-### 4.3 Keranjang dan Checkout
+- CRUD data siswa, termasuk NIS, NISN, kelas, jurusan, tanggal lahir, wali, dan status.
+- CRUD data guru, termasuk NIP, mata pelajaran, jabatan, kontak, tanggal bergabung, dan status.
+- CRUD berita dan pemberitahuan, termasuk kategori, ringkasan, isi, gambar sampul, dan status publikasi.
+- Pengelolaan galeri foto dengan kategori, deskripsi, unggah gambar, dan hapus.
+- Pengelolaan profil sekolah yang mencakup nama, NPSN, jenjang, akreditasi, kepala sekolah, kontak, alamat, visi, misi, dan sejarah.
+- Manajemen akun oleh admin, mencakup role, status aktif, serta penggantian kata sandi.
+- Pencarian/filter dan paginasi tersedia pada beberapa daftar administrasi.
 
-- Keranjang berbasis session.
-- Validasi jumlah pembelian terhadap stok produk.
-- Checkout hanya tersedia untuk pelanggan yang telah login.
-- Pengumpulan nama penerima, nomor telepon, dan alamat pengiriman.
-- Perhitungan subtotal, biaya kirim tetap, dan total pesanan.
-- Pencatatan order number dan detail item pesanan.
+### 4.3 Storefront dan Pemesanan Abdishope
 
-### 4.4 Metode Pembayaran
+- Beranda menampilkan produk aktif terbaru dan tautan ke katalog.
+- Katalog dan detail produk hanya menampilkan produk aktif; katalog dapat difilter melalui kategori `home`, `wear`, dan `ritual`.
+- Keranjang disimpan pada session browser dan mendukung penambahan produk dengan jumlah yang dibatasi stok saat ditambahkan.
+- Checkout memerlukan autentikasi dan mengumpulkan nama penerima, telepon, alamat, serta pilihan metode pembayaran.
+- Metode pembayaran yang ditampilkan: transfer bank, e-wallet, dan COD.
+- Pesanan dan baris item dicatat ke database dalam transaksi; stok dikurangi dan isi keranjang dibersihkan setelah pesanan berhasil dibuat.
+- Halaman pesanan hanya dapat diakses pemilik pesanan atau admin.
+- Dashboard toko menampilkan jumlah produk, stok, pelanggan, pesanan, total pembayaran berstatus lunas, dan pesanan terbaru.
+- Admin dapat mengelola data produk: nama, kategori, tipe, deskripsi, harga, harga lama, URL gambar, tag, stok, dan status aktif.
 
-- Transfer bank.
-- E-wallet: GoPay, OVO, atau DANA.
-- Cash on Delivery (COD).
-- Status awal pembayaran adalah `pending`.
-- Instruksi metode pembayaran ditampilkan setelah pesanan dibuat.
+### 4.4 Autentikasi dan Keamanan
 
-### 4.5 Panel Admin
+- Registrasi storefront membuat akun ber-role `customer`; kata sandi minimal 8 karakter dan disimpan sebagai hash.
+- Login, logout, regenerasi session, dan opsi “ingat saya” tersedia.
+- Akun yang tidak aktif ditolak saat login dan sesi aktifnya ditutup ketika mengakses rute administrasi.
+- Percobaan login, pengiriman formulir PSB, cek status, dan unggah dokumen dibatasi lajunya.
+- Pengelolaan akun mencegah admin menurunkan role, menonaktifkan, atau menghapus akunnya sendiri melalui halaman manajemen pengguna.
+- Nomor pendaftaran saja tidak cukup untuk membuka atau mengelola dokumen; bukti kepemilikan disimpan di session setelah formulir dikirim atau cek status sukses.
 
-- Dashboard berisi jumlah produk, stok, pelanggan, pesanan, pendapatan pembayaran lunas, dan daftar pesanan terbaru.
-- CRUD produk: nama, kategori, tipe, deskripsi, harga, harga diskon, URL gambar, label, stok, dan status tampil.
-- CRUD berita & pemberitahuan: judul, kategori, ringkasan, isi, sampul, status draf/terbit, pencarian, dan filter.
-- CRUD pengguna dengan pembatasan agar admin tidak dapat mencabut akses admin dirinya sendiri.
+## 5. Data Utama
 
-## 5. Hak Akses
-
-| Role | Hak akses |
+| Entitas | Kegunaan |
 | --- | --- |
-| Guest | Storefront, katalog, detail produk, dan keranjang. |
-| Customer | Seluruh akses guest serta checkout dan konfirmasi pesanan miliknya. |
-| Admin | Dashboard dan seluruh CRUD toko. |
+| `users` | Akun, role, status aktif, kontak, dan waktu login terakhir. |
+| `school_profiles` | Informasi profil dan identitas sekolah. |
+| `registrations` | Formulir, nomor, status seleksi, dan catatan pendaftar. |
+| `registration_documents` | Metadata dan lokasi privat berkas persyaratan. |
+| `students` | Data siswa yang dikelola atau dibuat dari pendaftar yang diterima. |
+| `teachers` | Data tenaga pendidik. |
+| `announcements` | Berita dan pemberitahuan. |
+| `galleries` | Metadata foto galeri. |
+| `products` | Katalog produk dan inventaris Abdishope. |
+| `orders` | Penerima, metode/status pembayaran, status pesanan, dan jumlah transaksi. |
+| `order_items` | Snapshot nama, harga, jumlah, dan subtotal produk saat dipesan. |
 
-## 6. Data Utama
+Skema database dibuat melalui Laravel migrations. File `.env.example` menggunakan MySQL sebagai konfigurasi bawaan; konfigurasi pengujian memakai SQLite in-memory.
 
-| Tabel | Fungsi |
-| --- | --- |
-| `users` | Data pelanggan dan admin. |
-| `products` | Katalog, harga, stok, gambar, serta status publikasi produk. |
-| `orders` | Data penerima, pembayaran, status proses, subtotal, ongkir, dan total. |
-| `order_items` | Snapshot produk, harga, dan kuantitas per pesanan. |
-| `announcements` | Berita dan pemberitahuan toko. |
+## 6. Aturan Bisnis Penting
 
-Database pengembangan lokal bernama `abdishope`.
+- Pendaftaran baru selalu dimulai dengan status `menunggu`.
+- Pendaftar hanya dapat dipromosikan menjadi siswa bila statusnya `diterima`.
+- NIS siswa harus unik; pembuatan siswa dari pendaftaran menyalin informasi pendaftar yang tersedia.
+- Dokumen pendaftaran tidak boleh disajikan sebagai URL publik.
+- Keranjang adalah data session, bukan keranjang persisten per akun.
+- Checkout menetapkan biaya pengiriman tetap Rp20.000.
+- Pesanan menyimpan `payment_status` awal `pending`; tidak ada gateway pembayaran yang dikonfigurasi dalam codebase.
+- Produk yang tidak aktif tidak muncul pada katalog dan tidak dimasukkan ke item keranjang saat daftar item dibangun.
 
-## 7. Kebutuhan UI/UX
+## 7. Kebutuhan Nonfungsional
 
-- Identitas visual Abdishope harus konsisten di seluruh halaman.
-- Harga memakai format Rupiah.
-- CTA keranjang dan checkout harus terlihat jelas.
-- Form memberikan validasi server-side yang mudah dipahami.
-- Status pembayaran dan pesanan selalu ditampilkan dengan teks, bukan warna saja.
-- Dashboard admin harus menonjolkan pekerjaan operasional tanpa konten akademik/sekolah.
+- Antarmuka berbahasa Indonesia dan mendukung layar desktop maupun mobile melalui Blade dan Tailwind CSS.
+- Validasi input dilakukan di sisi server.
+- Kata sandi tidak disimpan dalam bentuk teks biasa.
+- Endpoint publik sensitif harus mempertahankan rate limit yang telah dikonfigurasi.
+- Hak akses dokumen pendaftar harus tetap diperiksa pada setiap operasi lihat, unggah, unduh, dan hapus.
+- Test otomatis harus melindungi aturan akses, rate limit, dan penomoran.
 
-## 8. Kebutuhan Teknis
+## 8. Teknologi
 
-- Laravel 13 untuk backend dan routing.
-- Blade, Tailwind CSS, Alpine.js, dan Vite untuk antarmuka.
-- MySQL/MariaDB dengan migration Laravel.
-- Aset Vite dibangun ke `public/build/manifest.json`.
-- Seeder `StoreSeeder` menyediakan admin dan produk demo.
-- File gambar berita dikelola oleh Laravel Storage.
+- PHP `^8.3` dan Laravel `^13.8`.
+- Blade untuk rendering halaman.
+- Tailwind CSS 4, Alpine.js, dan Vite untuk antarmuka/aset.
+- Database relasional; konfigurasi default lokal pada `.env.example` adalah MySQL.
+- PHPUnit 12 melalui `php artisan test`.
 
-## 9. Acceptance Criteria
+## 9. Kriteria Penerimaan
 
-- Pengunjung dapat melihat katalog dan detail produk tanpa login.
-- Pengunjung dapat menambahkan produk ke keranjang.
-- Pelanggan dapat membuat akun, login, dan menyelesaikan checkout.
-- Sistem membuat `orders` dan `order_items` setelah checkout berhasil.
-- Stok berkurang sesuai jumlah produk yang dipesan.
-- Admin dapat login ke `/admin` dan melihat metrik toko.
-- Admin dapat membuat, mengubah, dan menghapus produk.
-- Admin dapat membuat, mengubah, dan menghapus berita/pemberitahuan.
-- Admin dapat mengelola akun pengguna.
-- `npm run build` menghasilkan manifest Vite.
-- Blade template dapat dikompilasi tanpa error.
+### PSB dan administrasi sekolah
 
-## 10. Batasan Saat Ini
+- Pengunjung dapat mengirim formulir PSB dan menerima nomor pendaftaran.
+- Pendaftar dapat memeriksa status hanya dengan pasangan nomor pendaftaran dan email yang cocok.
+- Pendaftar yang terverifikasi dapat mengunggah, mengunduh, dan menghapus dokumen; pengunjung lain tidak dapat mengakses berkas tersebut.
+- Petugas dapat mencari pendaftaran, memperbarui status/catatan, dan mengunduh dokumen.
+- Pendaftar berstatus `diterima` dapat dibuat menjadi siswa dengan NIS unik.
+- Admin dapat mengelola pengguna dan produk; pengguna terautentikasi dapat mengakses rute administrasi lain sesuai konfigurasi middleware saat ini.
 
-- Pembayaran belum terhubung ke gateway pihak ketiga; metode pembayaran masih alur demo.
-- Belum ada verifikasi otomatis pembayaran atau webhook.
-- Belum ada integrasi kurir dan kalkulasi ongkir dinamis.
-- Keranjang belum tersimpan permanen ke akun pengguna.
-- Belum tersedia manajemen pesanan lengkap untuk admin (ubah status, resi, dan refund).
-- Belum ada notifikasi email/WhatsApp.
+### Storefront
 
-## 11. Prioritas Berikutnya
+- Pengunjung dapat melihat beranda, produk aktif, katalog, dan detail produk.
+- Pengunjung dapat menambahkan produk ke keranjang, dan pelanggan terautentikasi dapat membuat pesanan.
+- Pesanan menyimpan rincian produk dan memperbarui stok.
+- Pemilik pesanan dapat membuka ringkasan pesanan; pengguna lain ditolak.
 
-1. Integrasi Midtrans/Xendit, VA, QRIS, dan webhook pembayaran.
-2. Manajemen pesanan admin, status pengiriman, dan nomor resi.
-3. Integrasi kurir serta ongkir otomatis.
-4. Riwayat pesanan pelanggan.
-5. Notifikasi email/WhatsApp.
-6. Promo, voucher, dan pengelolaan kategori dinamis.
+### Kualitas
+
+- `php artisan test` lulus.
+- `npm run build` membangun aset Vite.
+
+## 10. Batasan dan Kesenjangan yang Terlihat
+
+- Identitas dan alur produk masih bercampur: konfigurasi menyebut `Portal Sekolah`, sedangkan storefront dan dashboard memakai `Abdishope`.
+- Beranda publik yang terdaftar pada `/` adalah storefront. Belum terlihat halaman depan sekolah, halaman publik berita, halaman publik galeri, atau halaman profil sekolah.
+- CRUD galeri, profil sekolah, siswa, guru, dan pendaftaran tersedia melalui route, tetapi tidak seluruhnya ditampilkan pada navigasi sidebar admin.
+- Role `staf` dan `guru` ada, tetapi aturan otorisasi rute sekolah belum membedakan hak akses role tersebut dari semua pengguna yang sudah login dan aktif.
+- Tidak ada alur administrasi pesanan untuk memperbarui status pembayaran/pemenuhan atau memproses refund.
+- Metode pembayaran hanya dicatat; transfer/e-wallet tidak diverifikasi otomatis dan tidak terhubung ke payment gateway.
+- Instruksi pembayaran pada halaman hasil pesanan adalah instruksi statis/demo.
+- Ongkir bersifat tetap; belum ada integrasi kurir.
+- Belum terlihat halaman riwayat seluruh pesanan pelanggan.
+- Tidak ada notifikasi email/WhatsApp yang terintegrasi.
+- Gambar produk menggunakan URL, sedangkan gambar berita/galeri menggunakan storage publik.
+- Data contoh pada seeder mencakup profil sekolah, akun demo, siswa, guru, konten, galeri, pendaftar, dan produk.
+
+## 11. Prioritas Pengembangan Lanjutan
+
+1. Tegaskan apakah aplikasi akan menjadi portal sekolah, toko Abdishope, atau dua produk dalam satu aplikasi; samakan nama, navigasi, dan halaman awal dengan keputusan tersebut.
+2. Definisikan matriks role-permission dan terapkan pembatasan role pada setiap route administrasi.
+3. Jika fokusnya portal sekolah, tambahkan halaman publik profil sekolah, berita, galeri, dan tautan PSB pada navigasi publik.
+4. Jika toko tetap dipakai, tambahkan manajemen pesanan, riwayat pesanan pelanggan, dan status pemenuhan.
+5. Integrasikan payment gateway dan kurir hanya setelah kebijakan transaksi, pembatalan, dan pengembalian disepakati.
+6. Tambahkan validasi alur end-to-end untuk checkout, stok saat checkout bersamaan, serta hak akses tiap role.
